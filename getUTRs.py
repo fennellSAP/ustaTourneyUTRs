@@ -8,12 +8,6 @@ from openpyxl import Workbook
 import time
 import operator
 
-class TennisPlayer():
-     def __init__(self):
-         self.name = ""
-         self.rating = 0
-         self.location = ""
-
 playersNotFound = []
 driver = webdriver.Chrome(executable_path=r"C:\Users\I509049\Downloads\chromedriver_win32\chromedriver.exe")
 
@@ -46,7 +40,7 @@ def getPlayers(division):
     select = Select(driver.find_element_by_xpath('//*[@id="ctl00_mainContent_ControlTabs7_cboEvents"]'))
     select.select_by_visible_text(division)
 
-    time.sleep(1)
+    time.sleep(1.25)
 
     totalPlayers = driver.find_element_by_xpath('//*[@id="ctl00_mainContent_ControlTabs7_pnlUpdate"]/div[8]').text
     totalPlayers = int(totalPlayers[15:])
@@ -71,10 +65,66 @@ def getPlayers(division):
 
     return players
 
-
 def getUTRs(playersList):
 
+    class TennisPlayer():
+     def __init__(self):
+         self.name = ""
+         self.rating = 0
+         self.location = ""
+
     playerData = []
+
+    counter = 0
+    for name in playersList:
+
+        driver.find_element_by_xpath('//*[@id="myutr-app-wrapper"]/div[2]/nav/div[1]/div[2]/div/div[1]/div[1]/input').send_keys(name)
+        
+        try:
+            element = WebDriverWait(driver, 5).until(
+                EC.presence_of_all_elements_located((By.XPATH, '//*[@id="myutr-app-wrapper"]/div[2]/nav/div[1]/div[2]/div/div[1]/div[2]/div/div/div[2]/div[2]/div[2]/span')))
+
+            playerInfo = driver.find_element_by_xpath('//*[@id="myutr-app-wrapper"]/div[2]/nav/div[1]/div[2]/div/div[1]/div[2]/div/div/div[2]/div[2]/div[2]/span').text
+            playerArray = playerInfo.split(u'\u2022')
+
+            player = TennisPlayer()
+            player.name = name
+
+            if 'UR' in playerArray[1]:
+
+                player.rating = 0
+
+            else:
+                
+                player.rating = float(playerArray[1].strip())
+                
+            if len(playerArray) < 3:
+
+                player.location = "Not Found"
+
+            else:
+
+                player.location = playerArray[2]
+
+            playerData.append(player)
+            
+        except:
+            
+            player.location = "Not Found"
+            playersNotFound.append(player.name)
+
+        finally:
+
+            driver.find_element_by_xpath('//*[@id="myutr-app-wrapper"]/div[2]/nav/div[1]/div[2]/div/div[1]/div[1]/input').send_keys(Keys.CONTROL + "a")
+            driver.find_element_by_xpath('//*[@id="myutr-app-wrapper"]/div[2]/nav/div[1]/div[2]/div/div[1]/div[1]/input').send_keys(Keys.BACKSPACE)
+            print(f'{counter}/{len(playersList)}')
+            counter += 1
+
+    playerData.sort(key=lambda x: x.rating, reverse=True)
+
+    return playerData
+
+def login():
 
     email = input("Enter UTR E-Mail: ")
     password = input("Enter UTR Password: ")
@@ -96,57 +146,15 @@ def getUTRs(playersList):
         element = WebDriverWait(driver, 10).until(
             EC.presence_of_element_located((By.XPATH, '//*[@id="myutr-app-wrapper"]/div[2]/nav/div[1]/div[4]/span')))
         print("Finding tournament player's UTRs")
+    
+    except:
+        return False
 
     finally:
 
-        counter = 0
-        for name in playersList:
+        return True
 
-            driver.find_element_by_xpath('//*[@id="myutr-app-wrapper"]/div[2]/nav/div[1]/div[2]/div/div[1]/div[1]/input').send_keys(name)
-            
-            try:
-                element = WebDriverWait(driver, 5).until(
-                    EC.presence_of_all_elements_located((By.XPATH, '//*[@id="myutr-app-wrapper"]/div[2]/nav/div[1]/div[2]/div/div[1]/div[2]/div/div/div[2]/div[2]/div[2]/span')))
-
-                playerInfo = driver.find_element_by_xpath('//*[@id="myutr-app-wrapper"]/div[2]/nav/div[1]/div[2]/div/div[1]/div[2]/div/div/div[2]/div[2]/div[2]/span').text
-                playerArray = playerInfo.split(u'\u2022')
-
-                player = TennisPlayer()
-                player.name = name
-
-                if 'UR' in playerArray[1]:
-
-                    player.rating = 0
-
-                else:
-                    
-                    player.rating = float(playerArray[1].strip())
-                    
-                if len(playerArray) < 3:
-
-                    player.location = "Not Found"
-
-                else:
-
-                    player.location = playerArray[2]
-
-                playerData.append(player)
-                
-            except:
-                
-                player.location = "Not Found"
-                playersNotFound.append(player.name)
-
-            finally:
-
-                driver.find_element_by_xpath('//*[@id="myutr-app-wrapper"]/div[2]/nav/div[1]/div[2]/div/div[1]/div[1]/input').send_keys(Keys.CONTROL + "a")
-                driver.find_element_by_xpath('//*[@id="myutr-app-wrapper"]/div[2]/nav/div[1]/div[2]/div/div[1]/div[1]/input').send_keys(Keys.BACKSPACE)
-                print(f'{counter}/{len(playersList)}')
-                counter += 1
-
-        playerData.sort(key=lambda x: x.rating, reverse=True)
-
-        return playerData
+        
 
 def writeToExcel(playerData):
 
@@ -185,9 +193,17 @@ def main():
     division = selectDivision()
     
     players = getPlayers(division)
-    
-    playerData = getUTRs(players)
 
+    authenticated = login()
+
+    if not authenticated:
+        print("\nDid not pass authenticaton. Please try again")
+        while not authenticated:
+            authenticated = login()
+
+    print("\nAuthentication Passed")    
+    playerData = getUTRs(players)
+    
     writeToExcel(playerData)
 
     
