@@ -67,6 +67,8 @@ def getPlayers(division):
 
 def getUTRs(playersList):
 
+    print("Finding tournament player's UTRs...\n")
+
     class TennisPlayer():
      def __init__(self):
          self.name = ""
@@ -111,7 +113,7 @@ def getUTRs(playersList):
         except:
             
             player.location = "Not Found"
-            playersNotFound.append(player.name)
+            playersNotFound.append(name)
 
         finally:
 
@@ -129,7 +131,7 @@ def login():
     email = input("Enter UTR E-Mail: ")
     password = input("Enter UTR Password: ")
 
-    print("Going to UTR website")
+    print("Going to UTR website...")
 
     driver.get("https://www.myutr.com/")
 
@@ -145,7 +147,6 @@ def login():
     try:
         element = WebDriverWait(driver, 10).until(
             EC.presence_of_element_located((By.XPATH, '//*[@id="myutr-app-wrapper"]/div[2]/nav/div[1]/div[4]/span')))
-        print("Finding tournament player's UTRs")
     
     except:
         return False
@@ -177,6 +178,15 @@ def writeToExcel(playerData):
         sheet["C" + str(counter)] = player.rating
         sheet["D" + str(counter)] = player.location
 
+        counter += 1
+
+    counter += 1
+    sheet["A" + str(counter)] = "Players Who Returned No Data"
+    counter += 2
+
+    for nobody in playersNotFound:
+
+        sheet["A" + str(counter)] = nobody
         counter += 1
     
     wb.save("playerSeedings.xlsx")
