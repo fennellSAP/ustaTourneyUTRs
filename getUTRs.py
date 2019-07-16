@@ -176,8 +176,6 @@ def writeToExcel(playerData):
 
 def main():
 
-    global driver
-
     tournamentURL = input("Enter tournament URL: ")
 
     tournamentURL += "#&&s=1"
