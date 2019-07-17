@@ -6,10 +6,13 @@ from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 from openpyxl import Workbook
 import time
+import os
 import operator
 
-playersNotFound = []
 driver = webdriver.Chrome()
+
+playersNotFound = []
+
 
 def selectDivision():
 
@@ -119,7 +122,7 @@ def getUTRs(playersList):
 
             driver.find_element_by_xpath('//*[@id="myutr-app-wrapper"]/div[2]/nav/div[1]/div[2]/div/div[1]/div[1]/input').send_keys(Keys.CONTROL + "a")
             driver.find_element_by_xpath('//*[@id="myutr-app-wrapper"]/div[2]/nav/div[1]/div[2]/div/div[1]/div[1]/input').send_keys(Keys.BACKSPACE)
-            print(f'{counter}/{len(playersList)}')
+            print(f'{counter + 1}/{len(playersList)}')
             counter += 1
 
     playerData.sort(key=lambda x: x.rating, reverse=True)
@@ -191,6 +194,9 @@ def writeToExcel(playerData):
     
     wb.save("playerSeedings.xlsx")
 
+    
+    os.system("start EXCEL.EXE playerSeedings.xlsx")
+
 
 def main():
 
@@ -215,6 +221,8 @@ def main():
     playerData = getUTRs(players)
     
     writeToExcel(playerData)
+
+    print("Program complete")
 
     
 main()
