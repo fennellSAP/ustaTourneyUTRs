@@ -10,8 +10,13 @@ import os
 import operator
 
 driver = webdriver.Chrome()
-
 playersNotFound = []
+
+class TennisPlayer():
+    def __init__(self):
+        self.name = ""
+        self.rating = 0
+        self.location = ""
 
 
 def selectDivision():
@@ -71,12 +76,6 @@ def getPlayers(division):
 def getUTRs(playersList):
 
     print("Finding tournament player's UTRs...\n")
-
-    class TennisPlayer():
-     def __init__(self):
-         self.name = ""
-         self.rating = 0
-         self.location = ""
 
     playerData = []
 
